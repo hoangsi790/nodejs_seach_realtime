@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<!-- end -->
+
+<title>Search</title>
+</head>
+<!-- end -->
+
+<body>
+<header>
+    <div class="container-fluid primary-header">
+        <ul class="nav nav-pills primary-navigation">
+            <li role="presentation" class="active"><a href="#">Home</a></li>
+            <li role="presentation"><a href="#">Góp ý</a></li>
+            <li role="presentation"><a href="#">Liên hệ</a></li>
+            <li role="presentation" class="pull-right"><a href="#">Đăng ký</a></li>
+            <li role="presentation" class="pull-right active"><a href="#">Đăng nhập</a></li>
+        </ul>
+    </div>
+</header>
+
+
+
+<section class="col-sm-8" id="result">
+<div class="container-fluid">
+    <div class="input-group ">
+        <input type="text" class="form-control search-custom" placeholder="Search for..." id="autocomplete">
+        <span class="input-group-btn">
+        <button class="btn btn-danger" style="padding:15px 30px;" type="button" id="submit_search">Search</button>
+        </span> </div>
+</div>
+
+
+<div class="container-fluid" id="wrap-result">
+    <div class="primary-content-text  result-text" style="margin-top:40px;padding:15px;" id="result_main">
+      <p>Xin chào các bạn !<br>
+     Đây là một sản phẩm thử nghiệm của bộ phận IT. <br>
+     Quá trình xây dựng còn nhiều sai sót, rất mong nhận được sự góp ý và ủng hộ từ các bạn.<br>
+     Xin chân thành cảm ơn !</p>
+    </div>
+</div>
+
+</section>
+
+<div class="clearfix"> </div>
+<footer>
+    <div class="copyright container-fluid">
+        <p style="font-size:12px;"> NodeJS + MongoDB. </p>
+    </div>
+</footer>
+
+
+
+<script src="scripts/bootstrap.min.js"></script>
+<script src="scripts/jquery.min.js"></script>
+<script src="socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.2.27/jquery.autocomplete.js"></script>
+
+
+<script>
+  var socket = io('http://localhost:1000/'); // Kết nối với server
+
+  socket.on('server-result-search-empty', function() {
+    $('#result_main').html('<p>Không có dữ liệu !!!</p>');
+  });
+
+  socket.on('server-result-search', function(rs_words) { /* Khách hàng lắng nghe dữ liệu từ server gửi xuống */
+      $('#result_main').html('');
+    rs_words.forEach(function(rs_words){
+
+
+      $('#result_main').append(`
+        <p> hiragana : `+ rs_words.hiragana +` <br />romaji : `+ rs_words.romaji +`<br />translate : `+ rs_words.translate +`</p>
+      `);
+    });
+  }); // -----
+
+
+  socket.on('server-result-search-keyword', function(rs_keyword) { /* Khách hàng lắng nghe dữ liệu từ server gửi xuống */
+    $('#result_main').html('');
+    rs_keyword.forEach(function(rs_keyword){
+      $('#result_main').append(`
+        <p> hiragana : `+ rs_keyword.hiragana +` <br />romaji : `+ rs_keyword.romaji +`<br />translate : `+ rs_keyword.translate +`</p>
+      `);
+    });
+  }); // -----
+
+
+
+
+
+
+</script>
+
+
+<script>
+  $(document).ready(function() {
+    $('#submit_search').click(function(){
+      var value_search = $('#autocomplete').val();
+      if(value_search!='') {
+        socket.emit('client-search', value_search );
+      } else if (value_search=='') {
+        alert('Vui lòng nhập vào khung tìm kiếm..');
+        $('#autocomplete').focus();
+      }
+
+    });
+    // ---
+
+    $(document).on('keypress', function(e) {
+      var value_search = $('#autocomplete').val();
+					var keycode = (event.keyCode ? event.keyCode : event.which);
+					if ((e.keyCode == 10 || e.keyCode == 13) && value_search!='') {
+						e.preventDefault();
+            socket.emit('client-search', value_search );
+					 }
+          else if((e.keyCode == 10 || e.keyCode == 13) && value_search=='') {
+             alert('Vui lòng nhập vào khung tìm kiếm..');
+             $('#autocomplete').focus();
+          }
+			});
+    // ---
+
+  // autocomplete
+
+  $('#autocomplete').on('keypress', function(e) {
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(e.keyCode) {
+      //  alert(e.keyCode);
+      // var value_keyword = $('#autocomplete').val();
+      // alert(value_keyword);
+      if(value_keyword!='') {
+        socket.emit('client-send-keyword',value_keyword);
+      }
+
+    }
+
+  });
+
+
+
+
+});
+</script>
+
+
+
+
+</body>
+</html>
